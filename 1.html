@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #eeeeee;
+        }
+
+        .qty {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty button {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .qty button:hover {
+            background: #0056b3;
+        }
+
+        .qty span {
+            min-width: 25px;
+            font-weight: bold;
+        }
+
+        .remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .remove:hover {
+            background: #b02a37;
+        }
+
+        .summary {
+            margin-top: 25px;
+            margin-left: auto;
+            max-width: 350px;
+        }
+
+        .summary div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .discount {
+            color: green;
+            font-weight: bold;
+        }
+
+        .final {
+            font-size: 20px;
+            font-weight: bold;
+            border-top: 2px solid #333;
+            margin-top: 10px;
+            padding-top: 12px !important;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+            font-size: 18px;
+        }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            th, td {
+                padding: 8px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Shopping Cart</h1>
+
+    <div id="cartContainer"></div>
+
+    <div id="summary" class="summary"></div>
+
+</div>
+
+<script>
+
+    // Array of objects
+    let cart = [
+        {
+            name: "Notebook",
+            price: 120,
+            qty: 1
+        },
+        {
+            name: "Pen Pack",
+            price: 60,
+            qty: 1
+        },
+        {
+            name: "Water Bottle",
+            price: 350,
+            qty: 1
+        }
+    ];
+
+    // Display cart
+    function displayCart() {
+
+        const cartContainer = document.getElementById("cartContainer");
+
+        if (cart.length === 0) {
+
+            cartContainer.innerHTML =
+                `<div class="empty">Your cart is empty.</div>`;
+
+            document.getElementById("summary").innerHTML = "";
+
+            return;
+        }
+
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+        `;
+
+        cart.forEach((item, index) => {
+
+            let total = item.price * item.qty;
+
+            html += `
+                <tr>
+
+                    <td>${item.name}</td>
+
+                    <td>₹ ${item.price}</td>
+
+                    <td>
+                        <div class="qty">
+
+                            <button onclick="decreaseQty(${index})">
+                                −
+                            </button>
+
+                            <span>${item.qty}</span>
+
+                            <button onclick="increaseQty(${index})">
+                                +
+                            </button>
+
+                        </div>
+                    </td>
+
+                    <td>₹ ${total}</td>
+
+                    <td>
+                        <button
+                            class="remove"
+                            onclick="removeItem(${index})">
+                            Remove
+                        </button>
+                    </td>
+
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+        `;
+
+        cartContainer.innerHTML = html;
+
+        calculateTotal();
+    }
+
+
+    // Increase quantity
+    function increaseQty(index) {
+        cart[index].qty++;
+        displayCart();
+    }
+
+
+    // Decrease quantity
+    function decreaseQty(index) {
+
+        // Quantity should never be less than 1
+        if (cart[index].qty > 1) {
+            cart[index].qty--;
+        }
+
+        displayCart();
+    }
+
+
+    // Remove item
+    function removeItem(index) {
+        cart.splice(index, 1);
+        displayCart();
+    }
+
+
+    // Calculate subtotal and discount
+    function calculateTotal() {
+
+        let subtotal = 0;
+
+        cart.forEach(item => {
+            subtotal += item.price * item.qty;
+        });
+
+        let discount = 0;
+
+        // 10% discount for subtotal >= ₹1000
+        if (subtotal >= 1000) {
+            discount = subtotal * 0.10;
+        }
+
+        let finalAmount = subtotal - discount;
+
+        document.getElementById("summary").innerHTML = `
+
+            <div>
+                <span>Subtotal:</span>
+                <span>₹ ${subtotal.toFixed(2)}</span>
+            </div>
+
+            <div class="discount">
+                <span>Discount:</span>
+                <span>
+                    ₹ ${discount.toFixed(2)}
+                    ${discount > 0 ? "(10%)" : ""}
+                </span>
+            </div>
+
+            <div class="final">
+                <span>Amount Payable:</span>
+                <span>₹ ${finalAmount.toFixed(2)}</span>
+            </div>
+
+        `;
+    }
+
+
+    // Initial display
+    displayCart();
+
+</script>
+
+</body>
+</html>
